@@ -64,6 +64,32 @@ export default function DailyClosingPage() {
   const countedNum = parseFloat(actualCash || "0");
   const discrepancy = countedNum - live.expectedBalance;
 
+  const handleReopenRegister = async () => {
+    try {
+      setSubmitting(true);
+      setSuccessMsg("");
+      const res = await fetch("/api/daily-closing", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          closingDate,
+          action: "reopen",
+          userName: user?.name || "Admin",
+          userId: user?.id,
+        }),
+      });
+
+      if (res.ok) {
+        setSuccessMsg("Register successfully reopened! You can now add new walk-ins and transactions.");
+        triggerRefresh();
+      }
+    } catch (err) {
+      console.error("Reopen register error:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleCloseDay = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -139,9 +165,19 @@ export default function DailyClosingPage() {
             </div>
 
             {isClosed ? (
-              <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-bold rounded-full text-xs flex items-center gap-1">
-                <ShieldCheck className="w-4 h-4" /> CLOSED & LOCKED
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-bold rounded-full text-xs flex items-center gap-1">
+                  <ShieldCheck className="w-4 h-4" /> CLOSED & LOCKED
+                </span>
+                <button
+                  type="button"
+                  onClick={handleReopenRegister}
+                  disabled={submitting}
+                  className="px-3 py-1 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 font-bold rounded-full text-xs transition-colors"
+                >
+                  🔓 Reopen Register
+                </button>
+              </div>
             ) : (
               <span className="px-3 py-1 bg-amber-100 text-amber-800 font-bold rounded-full text-xs">
                 OPEN REGISTER

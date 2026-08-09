@@ -65,8 +65,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     async function init() {
       try {
         setIsLoading(true);
-        // Ensure db is seeded if needed
-        await fetch("/api/seed", { method: "POST" }).catch(() => {});
 
         const meRes = await fetch("/api/auth/me");
         const meData = meRes.ok ? await meRes.json().catch(() => null) : null;

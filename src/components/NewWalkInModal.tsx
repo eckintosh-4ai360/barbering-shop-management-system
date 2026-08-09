@@ -14,6 +14,7 @@ import {
   Receipt,
   Sparkles,
   Loader2,
+  Lock,
 } from "lucide-react";
 
 export function NewWalkInModal() {
@@ -30,26 +31,30 @@ export function NewWalkInModal() {
 
   const [servicesList, setServicesList] = useState<any[]>([]);
   const [barbersList, setBarbersList] = useState<any[]>([]);
+  const [isRegisterClosed, setIsRegisterClosed] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  // Fetch Services & Barbers
+  // Fetch Services & Barbers & Today Closing Status
   useEffect(() => {
     if (openWalkInModal) {
       async function fetchData() {
         try {
-          const [sRes, bRes] = await Promise.all([
+          const [sRes, bRes, cRes] = await Promise.all([
             fetch("/api/services"),
             fetch("/api/barbers"),
+            fetch("/api/daily-closing?date=today"),
           ]);
           const sData = await sRes.json();
           const bData = await bRes.json();
+          const cData = await cRes.json();
 
           const activeServices = (sData.services || []).filter((s: any) => s.status === "active");
           const activeBarbers = (bData.barbers || []).filter((b: any) => b.status === "active");
 
           setServicesList(activeServices);
           setBarbersList(activeBarbers);
+          setIsRegisterClosed(cData?.closing?.status === "closed");
 
           if (activeServices.length > 0 && !selectedServiceId) {
             setSelectedServiceId(String(activeServices[0].id));
@@ -79,6 +84,10 @@ export function NewWalkInModal() {
     e.preventDefault();
     setError("");
 
+    if (isRegisterClosed) {
+      setError("Today's register has been closed. Please reopen the register on the Daily Closing page.");
+      return;
+    }
     if (!customerName.trim()) {
       setError("Please enter customer name.");
       return;
@@ -162,6 +171,18 @@ export function NewWalkInModal() {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {isRegisterClosed && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl text-xs font-bold flex items-start gap-3">
+              <Lock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <span>Today's register has been closed & locked.</span>
+                <p className="font-medium text-amber-700 text-[11px] mt-0.5">
+                  To register new walk-ins or add services, please reopen the register on the Daily Closing page.
+                </p>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs font-medium">
               {error}
@@ -340,8 +361,8 @@ export function NewWalkInModal() {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="flex-2 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              disabled={isSubmitting || isRegisterClosed}
+              className="flex-2 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>

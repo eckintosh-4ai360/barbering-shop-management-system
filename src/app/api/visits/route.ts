@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { visits, barbers, services, customers, auditLogs } from "@/db/schema";
+import { visits, barbers, services, customers, auditLogs, dailyClosings } from "@/db/schema";
 import { desc, eq, and, gte, lte, like, or, sql } from "drizzle-orm";
 
 export async function GET(req: Request) {
@@ -80,6 +80,20 @@ export async function POST(req: Request) {
 
     if (!customerName || !serviceId || !barberId) {
       return NextResponse.json({ error: "Customer name, service, and barber are required." }, { status: 400 });
+    }
+
+    // Check if today's register is closed & locked
+    const todayStr = new Date().toISOString().split("T")[0];
+    const todayClosing = await db
+      .select()
+      .from(dailyClosings)
+      .where(and(eq(dailyClosings.closingDate, todayStr), eq(dailyClosings.status, "closed")));
+
+    if (todayClosing.length > 0) {
+      return NextResponse.json(
+        { error: "Today's register has already been closed & locked. Reopen the register on the Daily Closing page to add new services." },
+        { status: 400 }
+      );
     }
 
     // Get Service

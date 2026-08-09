@@ -181,3 +181,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to perform daily closing" }, { status: 500 });
   }
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const body = await req.json();
+    const { closingDate = new Date().toISOString().split("T")[0], action, userName = "Staff", userId = null } = body;
+
+    if (action === "reopen") {
+      const [updated] = await db
+        .update(dailyClosings)
+        .set({ status: "open" })
+        .where(eq(dailyClosings.closingDate, closingDate))
+        .returning();
+
+      await db.insert(auditLogs).values({
+        userId,
+        userName,
+        action: "Reopened Daily Register",
+        details: `Reopened daily register for date ${closingDate} to allow new transactions.`,
+      });
+
+      return NextResponse.json({ success: true, closing: updated });
+    }
+
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  } catch (error) {
+    console.error("Reopen daily closing error:", error);
+    return NextResponse.json({ error: "Failed to reopen daily register" }, { status: 500 });
+  }
+}

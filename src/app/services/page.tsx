@@ -25,6 +25,7 @@ export default function ServicesPage() {
   // Form State
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Haircut");
+  const [otherCategory, setOtherCategory] = useState("");
   const [price, setPrice] = useState("");
   const [durationMin, setDurationMin] = useState("30");
   const [status, setStatus] = useState("active");
@@ -52,6 +53,7 @@ export default function ServicesPage() {
     setEditingService(null);
     setName("");
     setCategory("Haircut");
+    setOtherCategory("");
     setPrice("50.00");
     setDurationMin("30");
     setStatus("active");
@@ -61,7 +63,14 @@ export default function ServicesPage() {
   const openEditModal = (s: any) => {
     setEditingService(s);
     setName(s.name);
-    setCategory(s.category || "Haircut");
+    const knownCategories = ["Haircut", "Beard", "Combos", "Washing & Treatments", "Kids"];
+    if (knownCategories.includes(s.category)) {
+      setCategory(s.category || "Haircut");
+      setOtherCategory("");
+    } else {
+      setCategory("Other");
+      setOtherCategory(s.category || "");
+    }
     setPrice(s.price);
     setDurationMin(String(s.durationMin || 30));
     setStatus(s.status || "active");
@@ -77,14 +86,16 @@ export default function ServicesPage() {
       const url = editingService ? `/api/services/${editingService.id}` : "/api/services";
       const method = editingService ? "PATCH" : "POST";
 
+      const resolvedCategory = category === "Other" ? (otherCategory.trim() || "Other") : category;
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, category, price, durationMin, status }),
+        body: JSON.stringify({ name, category: resolvedCategory, price, durationMin, status }),
       });
 
       if (res.ok) {
         setShowModal(false);
+        setOtherCategory("");
         triggerRefresh();
       }
     } catch (err) {
@@ -236,7 +247,7 @@ export default function ServicesPage() {
                   </label>
                   <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    onChange={(e) => { setCategory(e.target.value); setOtherCategory(""); }}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-orange-500"
                   >
                     <option value="Haircut">Haircut</option>
@@ -244,8 +255,19 @@ export default function ServicesPage() {
                     <option value="Combos">Combos</option>
                     <option value="Washing & Treatments">Washing & Treatments</option>
                     <option value="Kids">Kids</option>
-                    <option value="Other">Other</option>
+                    <option value="Other">Other...</option>
                   </select>
+                  {category === "Other" && (
+                    <input
+                      type="text"
+                      placeholder="Specify category e.g. Scalp Treatment"
+                      value={otherCategory}
+                      onChange={(e) => setOtherCategory(e.target.value)}
+                      className="mt-2 w-full px-3.5 py-2.5 bg-orange-50 border border-orange-200 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-orange-500"
+                      required
+                      autoFocus
+                    />
+                  )}
                 </div>
 
                 <div>

@@ -23,6 +23,7 @@ export default function ExpensesPage() {
 
   // Form State
   const [category, setCategory] = useState("Electricity");
+  const [otherCategory, setOtherCategory] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split("T")[0]);
@@ -46,7 +47,8 @@ export default function ExpensesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!category || !description || !amount) return;
+    const resolvedCategory = category === "Other" ? (otherCategory.trim() || "Other") : category;
+    if (!resolvedCategory || !description || !amount) return;
 
     try {
       setSubmitting(true);
@@ -54,7 +56,7 @@ export default function ExpensesPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          category,
+          category: resolvedCategory,
           description,
           amount,
           expenseDate,
@@ -67,6 +69,7 @@ export default function ExpensesPage() {
         setShowModal(false);
         setDescription("");
         setAmount("");
+        setOtherCategory("");
         triggerRefresh();
       }
     } catch (err) {
@@ -228,7 +231,7 @@ export default function ExpensesPage() {
                 </label>
                 <select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  onChange={(e) => { setCategory(e.target.value); setOtherCategory(""); }}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-orange-500"
                 >
                   <option value="Electricity">Electricity</option>
@@ -239,8 +242,19 @@ export default function ExpensesPage() {
                   <option value="Equipment">Equipment</option>
                   <option value="Maintenance">Maintenance</option>
                   <option value="Staff expenses">Staff expenses</option>
-                  <option value="Other">Other</option>
+                  <option value="Other">Other...</option>
                 </select>
+                {category === "Other" && (
+                  <input
+                    type="text"
+                    placeholder="Specify category e.g. Marketing"
+                    value={otherCategory}
+                    onChange={(e) => setOtherCategory(e.target.value)}
+                    className="mt-2 w-full px-3.5 py-2.5 bg-orange-50 border border-orange-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-orange-500"
+                    required
+                    autoFocus
+                  />
+                )}
               </div>
 
               <div>

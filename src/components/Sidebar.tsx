@@ -100,8 +100,8 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Bottom Section: Quick POS Action & Role Switcher */}
-      <div className="p-4 border-t border-slate-800/80 space-y-3">
+      {/* Bottom Section: Quick POS Action */}
+      <div className="p-4 border-t border-slate-800/80">
         <button
           onClick={() => setOpenWalkInModal(true)}
           className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-all text-sm"
@@ -109,38 +109,6 @@ export function Sidebar() {
           <PlusCircle className="w-4 h-4" />
           + New Walk-in
         </button>
-
-        {/* Role Toggle Switcher for Demo */}
-        <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800 text-xs">
-          <div className="text-slate-400 font-medium mb-1.5 flex items-center justify-between">
-            <span>Logged in as:</span>
-            <span className="text-orange-400 font-bold uppercase text-[10px]">
-              {user?.role}
-            </span>
-          </div>
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => switchRole("admin")}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-center font-medium transition-all ${
-                isAdmin
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-slate-800 text-slate-400 hover:text-white"
-              }`}
-            >
-              👨‍💼 Admin
-            </button>
-            <button
-              onClick={() => switchRole("receptionist")}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-center font-medium transition-all ${
-                !isAdmin
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "bg-slate-800 text-slate-400 hover:text-white"
-              }`}
-            >
-              🧑‍💻 Reception
-            </button>
-          </div>
-        </div>
       </div>
     </aside>
   );

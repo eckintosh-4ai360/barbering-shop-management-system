@@ -65,12 +65,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       try {
         setIsLoading(true);
         // Ensure db is seeded if needed
-        await fetch("/api/seed", { method: "POST" });
+        await fetch("/api/seed", { method: "POST" }).catch(() => {});
 
         const meRes = await fetch("/api/auth/me");
-        const meData = await meRes.json();
+        const meData = meRes.ok ? await meRes.json().catch(() => null) : null;
 
-        if (meData.user) {
+        if (meData?.user) {
           setUser(meData.user);
         } else {
           // Default to demo admin if not logged in
@@ -84,8 +84,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
 
         const setRes = await fetch("/api/settings");
-        const setData = await setRes.json();
-        if (setData.settings) {
+        const setData = setRes.ok ? await setRes.json().catch(() => null) : null;
+        if (setData?.settings) {
           setSettings(setData.settings);
         }
       } catch (err) {

@@ -38,8 +38,10 @@ export default function BarbersPage() {
       try {
         setLoading(true);
         const res = await fetch("/api/barbers");
-        const data = await res.json();
-        setBarbers(data.barbers || []);
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setBarbers(data.barbers || []);
+        }
       } catch (err) {
         console.error("Failed to fetch barbers:", err);
       } finally {

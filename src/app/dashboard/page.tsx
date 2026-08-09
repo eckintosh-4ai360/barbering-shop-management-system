@@ -43,8 +43,8 @@ export default function DashboardPage() {
           fetch(`/api/visits?date=${range === "today" ? "today" : "all"}&limit=10`),
         ]);
 
-        const statsData = await statsRes.json();
-        const visitsData = await visitsRes.json();
+        const statsData = statsRes.ok ? await statsRes.json().catch(() => ({})) : {};
+        const visitsData = visitsRes.ok ? await visitsRes.json().catch(() => ({})) : {};
 
         setStats(statsData);
         setRecentVisits((visitsData.visits || []).slice(0, 8));

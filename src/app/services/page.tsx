@@ -35,8 +35,10 @@ export default function ServicesPage() {
       try {
         setLoading(true);
         const res = await fetch("/api/services");
-        const data = await res.json();
-        setServices(data.services || []);
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setServices(data.services || []);
+        }
       } catch (err) {
         console.error("Fetch services error:", err);
       } finally {

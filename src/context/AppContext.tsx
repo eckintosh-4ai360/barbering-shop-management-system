@@ -33,6 +33,7 @@ interface AppContextType {
   setOpenWalkInModal: (open: boolean) => void;
   selectedVisitForReceipt: any | null;
   setSelectedVisitForReceipt: (visit: any | null) => void;
+  login: (email: string, password: string) => Promise<{ success: boolean; user?: UserSession; error?: string }>;
   logout: () => Promise<void>;
   switchRole: (newRole: UserRole) => Promise<void>;
 }
@@ -73,14 +74,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (meData?.user) {
           setUser(meData.user);
         } else {
-          // Default to demo admin if not logged in
-          setUser({
-            id: 1,
-            name: "E-Shop Owner",
-            email: "admin@barber.com",
-            role: "admin",
-            avatarInitials: "EO",
-          });
+          setUser(null);
         }
 
         const setRes = await fetch("/api/settings");
@@ -90,6 +84,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (err) {
         console.error("Failed to initialize app state:", err);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -97,15 +92,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     init();
   }, []);
 
-  const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
-  };
-
-  const switchRole = async (newRole: UserRole) => {
-    const email = newRole === "admin" ? "admin@barber.com" : "receptionist@barber.com";
-    const password = newRole === "admin" ? "admin123" : "receptionist123";
-
+  const login = async (email: string, password: string) => {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -113,13 +100,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (data.user) {
+      if (res.ok && data.user) {
         setUser(data.user);
         triggerRefresh();
+        return { success: true, user: data.user as UserSession };
       }
+      return { success: false, error: data.error || "Login failed" };
     } catch (err) {
-      console.error("Role switch error:", err);
+      return { success: false, error: "Network or server error" };
     }
+  };
+
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      setUser(null);
+    }
+  };
+
+  const switchRole = async (newRole: UserRole) => {
+    const email = newRole === "admin" ? "admin@barber.com" : "receptionist@barber.com";
+    const password = newRole === "admin" ? "admin123" : "receptionist123";
+
+    await login(email, password);
   };
 
   return (
@@ -135,6 +141,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setOpenWalkInModal,
         selectedVisitForReceipt,
         setSelectedVisitForReceipt,
+        login,
         logout,
         switchRole,
       }}

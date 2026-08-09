@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { Sun, Moon, Bell, LogOut, ShieldCheck, User } from "lucide-react";
+import { Sun, Moon, Bell, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface HeaderProps {
   title?: string;
@@ -10,7 +11,13 @@ interface HeaderProps {
 
 export function Header({ title = "Dashboard" }: HeaderProps) {
   const { user, logout } = useApp();
+  const router = useRouter();
   const [isDark, setIsDark] = useState<boolean>(false);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
 
   return (
     <header className="h-16 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs">
@@ -40,7 +47,7 @@ export function Header({ title = "Dashboard" }: HeaderProps) {
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
             <div className="text-xs font-bold text-slate-800 leading-tight">
-              {user?.name || "E-Shop Owner"}
+              {user?.name || "User"}
             </div>
             <div className="text-[11px] text-slate-500 capitalize font-medium">
               {user?.role === "admin" ? "Superadmin" : "Receptionist"}
@@ -48,14 +55,14 @@ export function Header({ title = "Dashboard" }: HeaderProps) {
           </div>
 
           <div className="w-9 h-9 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-sm">
-            {user?.avatarInitials || "EO"}
+            {user?.avatarInitials || "U"}
           </div>
 
           {/* Logout Button */}
           <button
-            onClick={logout}
-            className="flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 py-1.5 px-2.5 rounded-lg transition-colors ml-1"
-            title="Logout"
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 py-1.5 px-3 rounded-lg transition-colors ml-1 border border-slate-200 hover:border-red-200"
+            title="Logout to login screen"
           >
             <LogOut className="w-4 h-4" />
             <span className="hidden md:inline">Logout</span>

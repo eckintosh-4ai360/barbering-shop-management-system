@@ -18,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-slate-100 text-slate-900 antialiased min-h-screen`}>
+      <body className={`${inter.className} bg-slate-100 text-slate-900 antialiased min-h-screen`} suppressHydrationWarning>
         <AppProvider>
           <LayoutContent>{children}</LayoutContent>
         </AppProvider>

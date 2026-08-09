@@ -53,7 +53,7 @@ export function Sidebar() {
   const navItems = isAdmin ? adminNavItems : receptionistNavItems;
 
   return (
-    <aside className="w-64 bg-[#121926] text-slate-300 flex flex-col justify-between shrink-0 min-h-screen border-r border-slate-800">
+    <aside className="w-64 bg-[#121926] text-slate-300 flex flex-col justify-between shrink-0 h-screen sticky top-0 border-r border-slate-800 overflow-y-auto z-30">
       <div>
         {/* Brand Header */}
         <div className="p-5 flex items-center gap-3 border-b border-slate-800/60">

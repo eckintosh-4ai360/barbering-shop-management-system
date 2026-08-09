@@ -41,6 +41,8 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
         return "Dashboard";
       case "/pos":
         return "Walk-ins & POS";
+      case "/orders":
+        return "Online Orders";
       case "/barbers":
         return "Barbers Roster & Performance";
       case "/services":

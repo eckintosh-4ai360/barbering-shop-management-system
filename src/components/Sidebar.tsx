@@ -20,6 +20,7 @@ import {
   ShieldAlert,
   Sparkles,
   PlusCircle,
+  Globe,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -31,6 +32,7 @@ export function Sidebar() {
   const adminNavItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Walk-ins & POS", href: "/pos", icon: Scissors },
+    { name: "Online Orders", href: "/orders", icon: Globe },
     { name: "Barbers", href: "/barbers", icon: Users },
     { name: "Services", href: "/services", icon: Store },
     { name: "Sales", href: "/sales", icon: CreditCard },
@@ -44,6 +46,7 @@ export function Sidebar() {
 
   const receptionistNavItems = [
     { name: "Walk-ins & POS", href: "/pos", icon: Scissors },
+    { name: "Online Orders", href: "/orders", icon: Globe },
     { name: "Today's Payments", href: "/sales", icon: CreditCard },
     { name: "Barbers Roster", href: "/barbers", icon: Users },
     { name: "Services Catalog", href: "/services", icon: Store },

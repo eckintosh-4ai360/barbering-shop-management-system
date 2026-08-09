@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Sora } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import { LayoutContent } from "@/components/LayoutContent";
 
-const inter = Inter({ subsets: ["latin"] });
+const sora = Sora({ subsets: ["latin"], variable: "--font-sora" });
 
 export const metadata: Metadata = {
   title: "E-Barber - Executive Barber Lounge & POS System",
@@ -17,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-slate-100 text-slate-900 antialiased min-h-screen`} suppressHydrationWarning>
+    <html lang="en" className={sora.variable}>
+      <body className={`${sora.className} bg-slate-100 text-slate-900 antialiased min-h-screen`} suppressHydrationWarning>
         <AppProvider>
           <LayoutContent>{children}</LayoutContent>
         </AppProvider>

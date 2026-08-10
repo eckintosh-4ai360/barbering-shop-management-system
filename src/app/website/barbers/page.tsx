@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "@/context/AppContext";
 import {
   Users,
@@ -13,9 +13,91 @@ import {
   Phone,
   CheckCircle,
   XCircle,
-  Image as ImageIcon,
+  Camera,
+  Upload,
 } from "lucide-react";
 
+// ─── Reusable photo picker UI ────────────────────────────────────────────────
+function PhotoPicker({
+  preview,
+  onFile,
+  onRemove,
+  error,
+  inputId,
+}: {
+  preview: string | null;
+  onFile: (base64: string) => void;
+  onRemove: () => void;
+  error: string | null;
+  inputId: string;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 3 * 1024 * 1024) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => onFile(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div>
+      <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
+        Photo
+      </label>
+      <div className="flex items-center gap-4">
+        <div className="relative shrink-0">
+          {preview ? (
+            <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-orange-300 shadow-md">
+              <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center">
+              <Camera className="w-7 h-7 text-slate-400" />
+            </div>
+          )}
+          {preview && (
+            <button
+              type="button"
+              onClick={() => { onRemove(); if (ref.current) ref.current.value = ""; }}
+              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors"
+              title="Remove photo"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+        <div className="flex-1">
+          <input
+            ref={ref}
+            id={inputId}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleChange}
+          />
+          <label
+            htmlFor={inputId}
+            className="flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-slate-600 hover:text-orange-600 font-semibold text-xs px-4 py-2.5 rounded-xl transition-all w-full justify-center"
+          >
+            <Upload className="w-4 h-4" />
+            {preview ? "Change Photo" : "Choose from File"}
+          </label>
+          <p className="text-[10px] text-slate-400 mt-1.5 text-center">
+            JPG, PNG, WEBP · Max 3MB
+          </p>
+        </div>
+      </div>
+      {error && (
+        <p className="text-xs text-red-500 font-medium mt-1.5">{error}</p>
+      )}
+    </div>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 export default function WebsiteBarbersPage() {
   const { refreshTrigger, triggerRefresh } = useApp();
 
@@ -29,7 +111,9 @@ export default function WebsiteBarbersPage() {
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [bio, setBio] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarBase64, setAvatarBase64] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [rating, setRating] = useState("5.00");
   const [yearsExperience, setYearsExperience] = useState("5");
   const [specialties, setSpecialties] = useState("");
@@ -60,7 +144,9 @@ export default function WebsiteBarbersPage() {
     setName("");
     setTitle("");
     setBio("");
-    setAvatarUrl("");
+    setAvatarPreview(null);
+    setAvatarBase64(null);
+    setPhotoError(null);
     setRating("5.00");
     setYearsExperience("5");
     setSpecialties("");
@@ -75,7 +161,9 @@ export default function WebsiteBarbersPage() {
     setName(b.name);
     setTitle(b.title);
     setBio(b.bio);
-    setAvatarUrl(b.avatarUrl);
+    setAvatarPreview(b.avatarUrl || null);
+    setAvatarBase64(b.avatarUrl || null);
+    setPhotoError(null);
     setRating(String(b.rating ?? "5.00"));
     setYearsExperience(String(b.yearsExperience ?? 5));
     setSpecialties(b.specialties || "");
@@ -86,7 +174,7 @@ export default function WebsiteBarbersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !title || !bio) return;
+    if (!name || !title) return;
 
     try {
       setSubmitting(true);
@@ -97,7 +185,17 @@ export default function WebsiteBarbersPage() {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, title, bio, avatarUrl, rating, yearsExperience, specialties, phone, isAvailable }),
+        body: JSON.stringify({
+          name,
+          title,
+          bio,
+          avatarUrl: avatarBase64 || "",
+          rating,
+          yearsExperience,
+          specialties,
+          phone,
+          isAvailable,
+        }),
       });
 
       if (res.ok) {
@@ -241,6 +339,15 @@ export default function WebsiteBarbersPage() {
                 </div>
               )}
 
+              {/* Photo picker */}
+              <PhotoPicker
+                inputId="barber-avatar-input"
+                preview={avatarPreview}
+                onFile={(b64) => { setAvatarPreview(b64); setAvatarBase64(b64); setPhotoError(null); }}
+                onRemove={() => { setAvatarPreview(null); setAvatarBase64(null); }}
+                error={photoError}
+              />
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Name *</label>
@@ -267,35 +374,14 @@ export default function WebsiteBarbersPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Bio *</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Bio</label>
                 <textarea
                   rows={3}
                   placeholder="Short bio shown on their public profile card"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium outline-none focus:ring-2 focus:ring-orange-500"
-                  required
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Photo URL</label>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt="Preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="w-5 h-5 text-slate-300" />
-                    )}
-                  </div>
-                  <input
-                    type="url"
-                    placeholder="https://..."
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">

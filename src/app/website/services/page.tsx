@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "@/context/AppContext";
 import {
   Store,
@@ -12,11 +12,74 @@ import {
   X,
   CheckCircle,
   XCircle,
-  Image as ImageIcon,
+  Camera,
+  Upload,
 } from "lucide-react";
 
 const CATEGORY_OPTIONS = ["Haircut", "Beard", "Shave", "Combo", "Treatment"];
 
+// ─── Reusable photo picker ─────────────────────────────────────────────────
+function PhotoPicker({
+  preview,
+  onFile,
+  onRemove,
+  inputId,
+}: {
+  preview: string | null;
+  onFile: (base64: string) => void;
+  onRemove: () => void;
+  inputId: string;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/") || file.size > 3 * 1024 * 1024) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => onFile(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div>
+      <label className="block text-xs font-bold text-slate-700 uppercase mb-2">Photo</label>
+      <div className="flex items-center gap-4">
+        <div className="relative shrink-0">
+          {preview ? (
+            <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-orange-300 shadow-md">
+              <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center">
+              <Camera className="w-7 h-7 text-slate-400" />
+            </div>
+          )}
+          {preview && (
+            <button
+              type="button"
+              onClick={() => { onRemove(); if (ref.current) ref.current.value = ""; }}
+              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+        <div className="flex-1">
+          <input ref={ref} id={inputId} type="file" accept="image/*" className="hidden" onChange={handleChange} />
+          <label
+            htmlFor={inputId}
+            className="flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-slate-600 hover:text-orange-600 font-semibold text-xs px-4 py-2.5 rounded-xl transition-all w-full justify-center"
+          >
+            <Upload className="w-4 h-4" />
+            {preview ? "Change Photo" : "Choose from File"}
+          </label>
+          <p className="text-[10px] text-slate-400 mt-1.5 text-center">JPG, PNG, WEBP · Max 3MB</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────
 export default function WebsiteServicesPage() {
   const { refreshTrigger, triggerRefresh } = useApp();
 
@@ -33,7 +96,8 @@ export default function WebsiteServicesPage() {
   const [durationMinutes, setDurationMinutes] = useState("30");
   const [category, setCategory] = useState("Haircut");
   const [otherCategory, setOtherCategory] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
@@ -61,7 +125,8 @@ export default function WebsiteServicesPage() {
     setDurationMinutes("30");
     setCategory("Haircut");
     setOtherCategory("");
-    setImageUrl("");
+    setImagePreview(null);
+    setImageBase64(null);
     setIsActive(true);
     setError("");
   };
@@ -86,14 +151,15 @@ export default function WebsiteServicesPage() {
       setCategory("Other");
       setOtherCategory(s.category || "");
     }
-    setImageUrl(s.imageUrl);
+    setImagePreview(s.imageUrl || null);
+    setImageBase64(s.imageUrl || null);
     setIsActive(Boolean(s.isActive));
     setShowModal(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !description || !price || !category) return;
+    if (!name || !price || !category) return;
 
     try {
       setSubmitting(true);
@@ -105,7 +171,15 @@ export default function WebsiteServicesPage() {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description, price, durationMinutes, category: resolvedCategory, imageUrl, isActive }),
+        body: JSON.stringify({
+          name,
+          description,
+          price,
+          durationMinutes,
+          category: resolvedCategory,
+          imageUrl: imageBase64 || "",
+          isActive,
+        }),
       });
 
       if (res.ok) {
@@ -137,7 +211,7 @@ export default function WebsiteServicesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div>
-          <h1 className="text-xl font-extrabold text-slate-800">Website Services & Pricing</h1>
+          <h1 className="text-xl font-extrabold text-slate-800">Website Services &amp; Pricing</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Manage the services, descriptions, and prices customers see on your public booking site
           </p>
@@ -268,11 +342,19 @@ export default function WebsiteServicesPage() {
                 </div>
               )}
 
+              {/* Photo picker */}
+              <PhotoPicker
+                inputId="service-image-input"
+                preview={imagePreview}
+                onFile={(b64) => { setImagePreview(b64); setImageBase64(b64); }}
+                onRemove={() => { setImagePreview(null); setImageBase64(null); }}
+              />
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Service Name *</label>
                 <input
                   type="text"
-                  placeholder="e.g. Executive Fade & Lineup"
+                  placeholder="e.g. Executive Fade &amp; Lineup"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-orange-500"
@@ -281,14 +363,13 @@ export default function WebsiteServicesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Description *</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Description</label>
                 <textarea
                   rows={2}
                   placeholder="What's included in this service"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium outline-none focus:ring-2 focus:ring-orange-500"
-                  required
                 />
               </div>
 
@@ -342,26 +423,6 @@ export default function WebsiteServicesPage() {
                   onChange={(e) => setDurationMinutes(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-orange-500"
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Photo URL</label>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
-                    {imageUrl ? (
-                      <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="w-5 h-5 text-slate-300" />
-                    )}
-                  </div>
-                  <input
-                    type="url"
-                    placeholder="https://..."
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
               </div>
 
               <label className="flex items-center gap-2.5 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer">

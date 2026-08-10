@@ -26,7 +26,7 @@ export default function SettingsPage() {
 
   const [activeTab, setActiveTab] = useState<"general" | "notifications">("general");
 
-  // --- General Settings State ---
+  // General Settings State 
   const [shopName, setShopName] = useState(settings?.shopName || "Executive Barber Lounge");
   const [currencySymbol, setCurrencySymbol] = useState(settings?.currencySymbol || "GH₵");
   const [phone, setPhone] = useState(settings?.phone || "+233 24 123 4567");
@@ -294,9 +294,8 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* ---------------------------------------------------------------------- */}
-      {/* TAB 1: GENERAL PROFILE SETTINGS */}
-      {/* ---------------------------------------------------------------------- */}
+      {/*  TAB 1: GENERAL PROFILE SETTINGS  */}
+    
       {activeTab === "general" && (
         <div className="space-y-6">
           {savedGeneral && (

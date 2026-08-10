@@ -38,12 +38,12 @@ ${settings.receiptFooter || "Thank you for grooming with us!"}
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-150 print:shadow-none print:border-none">
+      <div className="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-150 print:shadow-none print:border-none print:m-0">
         {/* Printable Area */}
-        <div className="p-6 font-mono text-xs text-slate-800 space-y-4 print:p-0">
+        <div className="p-6 font-mono text-xs text-slate-800 space-y-4 printable-receipt-container print:p-4">
           {/* Header */}
           <div className="text-center pb-3 border-b border-dashed border-slate-300">
-            <div className="w-10 h-10 rounded-full bg-orange-500/10 text-orange-600 flex items-center justify-center mx-auto mb-2 font-bold">
+            <div className="w-10 h-10 rounded-full bg-orange-500/10 text-orange-600 flex items-center justify-center mx-auto mb-2 font-bold no-print">
               <Scissors className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-base uppercase tracking-tight text-slate-900">
@@ -103,7 +103,7 @@ ${settings.receiptFooter || "Thank you for grooming with us!"}
         </div>
 
         {/* Modal Action Buttons (hidden during print) */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between gap-2 print:hidden">
+        <div className="p-4 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between gap-2 no-print print:hidden">
           <button
             onClick={handleCopy}
             className="px-3 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"

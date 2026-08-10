@@ -5,3 +5,42 @@
   --font-serif: var(--font-sora);
   --font-mono: var(--font-sora);
 }
+
+@media print {
+  /* Hide all elements on the screen during browser print */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Show ONLY the receipt modal container and its internal elements */
+  .printable-receipt-container,
+  .printable-receipt-container * {
+    visibility: visible !important;
+  }
+
+  /* Position the receipt cleanly at the top-left of standard receipt printer paper */
+  .printable-receipt-container {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 80mm !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Ensure non-printable modal elements like action buttons and backdrop overlays disappear */
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}

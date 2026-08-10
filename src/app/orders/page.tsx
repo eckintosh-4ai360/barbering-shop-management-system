@@ -83,7 +83,16 @@ export default function OnlineOrdersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, updatedByName: user?.name, userId: user?.id }),
       });
-      if (res.ok) triggerRefresh();
+      if (res.ok) {
+        triggerRefresh();
+
+        // Fire SMS & Email notification to customer for status updates
+        fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId, trigger: status }),
+        }).catch((err) => console.error("Auto notify error:", err));
+      }
     } catch (err) {
       console.error("Update order status error:", err);
     }

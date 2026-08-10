@@ -252,3 +252,61 @@ export const storefrontSettings = pgTable("storefront_settings", {
 
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// ---------------------------------------------------------------------------
+// Notification settings — single-row table for SMS (mNotify) and email (Gmail)
+// credentials + editable message templates. Admin can manage from the Settings
+// page under the "Notifications" tab.
+// ---------------------------------------------------------------------------
+export const notificationSettings = pgTable("notification_settings", {
+  id: serial("id").primaryKey(),
+
+  // --- SMS (mNotify) ---
+  smsEnabled: boolean("sms_enabled").notNull().default(false),
+  mnotifyApiKey: text("mnotify_api_key").notNull().default(""),
+  smsSenderId: text("sms_sender_id").notNull().default("BARBERSHOP"),
+  smsOnBooking: text("sms_on_booking").notNull().default(
+    "Hi {{customerName}}, your booking #{{orderCode}} at {{shopName}} on {{date}} at {{time}} is CONFIRMED! Show this code at arrival."
+  ),
+  smsOnConfirmed: text("sms_on_confirmed").notNull().default(
+    "Hi {{customerName}}, your appointment #{{orderCode}} has been confirmed by our team. See you on {{date}} at {{time}}!"
+  ),
+  smsOnInProgress: text("sms_on_in_progress").notNull().default(
+    "Hi {{customerName}}, your appointment #{{orderCode}} is now in progress. Your barber is ready for you!"
+  ),
+  smsOnCompleted: text("sms_on_completed").notNull().default(
+    "Thanks for visiting {{shopName}}, {{customerName}}! Your session is complete. We hope you loved it. Book again soon!"
+  ),
+  smsOnCancelled: text("sms_on_cancelled").notNull().default(
+    "Hi {{customerName}}, your booking #{{orderCode}} at {{shopName}} has been cancelled. Contact us to rebook."
+  ),
+
+  // --- Email (Gmail SMTP) ---
+  emailEnabled: boolean("email_enabled").notNull().default(false),
+  gmailUser: text("gmail_user").notNull().default(""),
+  gmailAppPassword: text("gmail_app_password").notNull().default(""),
+  emailFromName: text("email_from_name").notNull().default("Eckintosh Barbers"),
+  emailSubjectOnBooking: text("email_subject_on_booking").notNull().default("Booking Confirmed — #{{orderCode}}"),
+  emailBodyOnBooking: text("email_body_on_booking").notNull().default(
+    "Hi {{customerName}},\n\nYour booking is confirmed!\n\nOrder: #{{orderCode}}\nDate: {{date}}\nTime: {{time}}\nBarber: {{barber}}\n\nItems:\n{{items}}\n\nTotal: {{total}}\n\nThank you for choosing {{shopName}}!"
+  ),
+  emailSubjectOnConfirmed: text("email_subject_on_confirmed").notNull().default("Appointment Confirmed — #{{orderCode}}"),
+  emailBodyOnConfirmed: text("email_body_on_confirmed").notNull().default(
+    "Hi {{customerName}},\n\nGreat news! Your appointment #{{orderCode}} has been confirmed by our team.\n\nDate: {{date}}\nTime: {{time}}\nBarber: {{barber}}\n\nWe look forward to seeing you at {{shopName}}!"
+  ),
+  emailSubjectOnInProgress: text("email_subject_on_in_progress").notNull().default("Your Appointment is Starting — #{{orderCode}}"),
+  emailBodyOnInProgress: text("email_body_on_in_progress").notNull().default(
+    "Hi {{customerName}},\n\nYour appointment #{{orderCode}} is now in progress. Your barber is ready for you!\n\n{{shopName}} Team"
+  ),
+  emailSubjectOnCompleted: text("email_subject_on_completed").notNull().default("Thanks for Visiting — {{shopName}}"),
+  emailBodyOnCompleted: text("email_body_on_completed").notNull().default(
+    "Hi {{customerName}},\n\nThank you for your visit! Your appointment #{{orderCode}} is now complete.\n\nWe hope you loved your experience at {{shopName}}. We look forward to seeing you again soon!"
+  ),
+  emailSubjectOnCancelled: text("email_subject_on_cancelled").notNull().default("Booking Cancelled — #{{orderCode}}"),
+  emailBodyOnCancelled: text("email_body_on_cancelled").notNull().default(
+    "Hi {{customerName}},\n\nWe're sorry to let you know that your booking #{{orderCode}} at {{shopName}} has been cancelled.\n\nPlease contact us to reschedule. We hope to see you soon!"
+  ),
+
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+

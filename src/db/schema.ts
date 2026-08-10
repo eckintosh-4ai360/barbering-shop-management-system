@@ -199,3 +199,55 @@ export const reviews = pgTable("reviews", {
   comment: text("comment").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// storefrontSettings holds every piece of editable marketing copy/branding shown on
+// the public client app (brand name, hero section, footer, hours, SEO, etc.) so the
+// shop owner can restyle their site's wording/contact info without touching code.
+// Single-row table, same pattern as `settings` above. Mirrored in barber-client-app.
+export const storefrontSettings = pgTable("storefront_settings", {
+  id: serial("id").primaryKey(),
+
+  // Brand
+  shopName: text("shop_name").notNull().default("O2 Trims"),
+  tagline: text("tagline").notNull().default("Grooming & Barber Co."),
+  announcementText: text("announcement_text").notNull().default("Walk-ins Welcome • Online Booking Guarantees Zero Wait Time"),
+
+  // Hero section
+  heroBadgeText: text("hero_badge_text").notNull().default("Premier Gentlemen's Barbering Co."),
+  heroHeading: text("hero_heading").notNull().default("Master Craftsmanship."),
+  heroHeadingAccent: text("hero_heading_accent").notNull().default("Flawless Barbering."),
+  heroSubtext: text("hero_subtext").notNull().default("Experience bespoke haircutting, hot steam straight-razor shaves, precision skin fades, and beard sculpting. Relax with complimentary craft beverages in a refined atmosphere."),
+  heroImageUrl: text("hero_image_url").notNull().default("https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&auto=format&fit=crop&q=80"),
+
+  // Stat highlights (3 fixed slots shown under the hero)
+  statValue1: text("stat_value_1").notNull().default("14,000+"),
+  statLabel1: text("stat_label_1").notNull().default("Haircuts Delivered"),
+  statValue2: text("stat_value_2").notNull().default("4.96"),
+  statLabel2: text("stat_label_2").notNull().default("Customer Rating"),
+  statValue3: text("stat_value_3").notNull().default("100%"),
+  statLabel3: text("stat_label_3").notNull().default("Precision Guaranteed"),
+
+  // "Why choose us" cards (3 fixed slots)
+  whyTitle1: text("why_title_1").notNull().default("Zero Waiting Time"),
+  whyText1: text("why_text_1").notNull().default("Online bookings reserve your chair instantly. Arrive, grab a drink, and step straight into the barber chair."),
+  whyTitle2: text("why_title_2").notNull().default("Craft Beverage Bar"),
+  whyText2: text("why_text_2").notNull().default("Every service includes a complimentary beverage of your choice: freshly brewed espresso, cold craft beer, or aged bourbon."),
+  whyTitle3: text("why_title_3").notNull().default("Barber Grade Grooming"),
+  whyText3: text("why_text_3").notNull().default("We use and sell top-tier pomades, organic beard oils, and soothing eucalyptus aftershave formulations."),
+
+  // Footer & contact
+  footerDescription: text("footer_description").notNull().default("Premium barbering craftsmanship, precision haircuts, traditional hot towel shaves, and custom grooming products."),
+  footerBadgeText: text("footer_badge_text").notNull().default("Voted Best Barbershop 2024 & 2025"),
+  hoursWeekday: text("hours_weekday").notNull().default("8:00 AM - 8:00 PM"),
+  hoursSaturday: text("hours_saturday").notNull().default("8:00 AM - 6:00 PM"),
+  hoursSunday: text("hours_sunday").notNull().default("10:00 AM - 4:00 PM"),
+  contactAddress: text("contact_address").notNull().default("482 Executive Parkway, Suite 100, Heritage Square"),
+  contactPhone: text("contact_phone").notNull().default("(555) 234-8901"),
+  contactEmail: text("contact_email").notNull().default("bookings@crownandbarber.com"),
+
+  // SEO
+  seoTitle: text("seo_title").notNull().default("O2 Trims | Gentlemen's Grooming & Barber Co."),
+  seoDescription: text("seo_description").notNull().default("Bespoke barbering craftsmanship, skin fades, hot towel straight razor shaves, and premium grooming store."),
+
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

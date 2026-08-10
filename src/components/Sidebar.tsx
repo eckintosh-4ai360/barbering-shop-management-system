@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/context/AppContext";
@@ -21,6 +21,10 @@ import {
   Sparkles,
   PlusCircle,
   Globe,
+  Layout,
+  ShoppingBag,
+  Star,
+  ChevronDown,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -28,6 +32,11 @@ export function Sidebar() {
   const { user, switchRole, setOpenWalkInModal } = useApp();
 
   const isAdmin = user?.role === "admin";
+
+  const isWebsiteRoute = pathname.startsWith("/website");
+  // Lazy initializer covers direct loads/refreshes on a /website/* route; once
+  // mounted the user's manual expand/collapse takes over (no effect needed).
+  const [websiteMenuOpen, setWebsiteMenuOpen] = useState(() => isWebsiteRoute);
 
   const adminNavItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -39,9 +48,22 @@ export function Sidebar() {
     { name: "Expenses", href: "/expenses", icon: DollarSign },
     { name: "Analytics", href: "/analytics", icon: BarChart3 },
     { name: "Daily Closing", href: "/closing", icon: Lock },
+  ];
+
+  const adminConfigNavItems = [
     { name: "Users", href: "/users", icon: UserCheck },
     { name: "Audit Logs", href: "/audit-logs", icon: History },
     { name: "Settings", href: "/settings", icon: Settings },
+  ];
+
+  // Client-app ("Website Content") management — grouped in a submenu, admin-only,
+  // since this is the surface the shop owner uses to run their own site after handover.
+  const websiteNavItems = [
+    { name: "Branding & Homepage", href: "/website/content", icon: Layout },
+    { name: "Barbers", href: "/website/barbers", icon: Users },
+    { name: "Services & Pricing", href: "/website/services", icon: Store },
+    { name: "Shop Products", href: "/website/products", icon: ShoppingBag },
+    { name: "Customer Reviews", href: "/website/reviews", icon: Star },
   ];
 
   const receptionistNavItems = [
@@ -99,6 +121,78 @@ export function Sidebar() {
                 </Link>
               );
             })}
+
+            {isAdmin && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setWebsiteMenuOpen((v) => !v)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
+                    isWebsiteRoute && !websiteMenuOpen
+                      ? "bg-slate-800/60 text-white"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                  }`}
+                >
+                  <Layout className={`w-4 h-4 ${isWebsiteRoute ? "text-orange-400" : "text-slate-400"}`} />
+                  <span className="flex-1 text-left">Website Content</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${
+                      websiteMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {websiteMenuOpen && (
+                  <div className="mt-1 ml-[18px] pl-3 border-l border-slate-800 space-y-1">
+                    {websiteNavItems.map((item) => {
+                      const isActive = pathname === item.href;
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-[13px] transition-all duration-150 ${
+                            isActive
+                              ? "bg-white text-slate-900 shadow-sm font-semibold"
+                              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                          }`}
+                        >
+                          <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-slate-900" : "text-slate-500"}`} />
+                          <span>{item.name}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isAdmin && (
+              <>
+                <div className="text-[11px] font-bold text-slate-500 tracking-wider uppercase mt-4 mb-2 px-3 pt-3 border-t border-slate-800/60">
+                  Configuration
+                </div>
+                {adminConfigNavItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
+                        isActive
+                          ? "bg-white text-slate-900 shadow-sm font-semibold"
+                          : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? "text-slate-900" : "text-slate-400"}`} />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </>
+            )}
           </nav>
         </div>
       </div>

@@ -16,6 +16,11 @@ const ADMIN_ONLY_ROUTES = [
   "/users",
   "/audit-logs",
   "/settings",
+  "/website/content",
+  "/website/barbers",
+  "/website/services",
+  "/website/products",
+  "/website/reviews",
 ];
 
 export function LayoutContent({ children }: { children: React.ReactNode }) {
@@ -61,6 +66,16 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
         return "System Audit Logs";
       case "/settings":
         return "Barbershop Settings";
+      case "/website/content":
+        return "Website Content & Branding";
+      case "/website/barbers":
+        return "Website Barbers";
+      case "/website/services":
+        return "Website Services & Pricing";
+      case "/website/products":
+        return "Website Shop Products";
+      case "/website/reviews":
+        return "Customer Reviews";
       default:
         return "Barbershop Management";
     }

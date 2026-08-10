@@ -7,7 +7,17 @@
 }
 
 @media print {
-  /* Hide all elements on the screen during browser print */
+  /* Hide all layout elements on the screen during browser print */
+  aside,
+  header,
+  main,
+  nav,
+  .no-print,
+  .print\:hidden {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
   body * {
     visibility: hidden !important;
   }
@@ -20,7 +30,7 @@
 
   /* Position the receipt cleanly at the top-left of standard receipt printer paper */
   .printable-receipt-container {
-    position: absolute !important;
+    position: fixed !important;
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
@@ -31,12 +41,6 @@
     color: #000000 !important;
     box-shadow: none !important;
     border: none !important;
-  }
-
-  /* Ensure non-printable modal elements like action buttons and backdrop overlays disappear */
-  .no-print {
-    display: none !important;
-    visibility: hidden !important;
   }
 
   @page {

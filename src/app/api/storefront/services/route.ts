@@ -23,8 +23,8 @@ export async function POST(req: Request) {
   try {
     const { name, description, price, durationMinutes, category, imageUrl, isActive } = await req.json();
 
-    if (!name || !description || price === undefined || price === null || !category) {
-      return NextResponse.json({ error: "Name, description, category, and price are required" }, { status: 400 });
+    if (!name || price === undefined || price === null || !category) {
+      return NextResponse.json({ error: "Name, category, and price are required" }, { status: 400 });
     }
 
     const priceNum = Number(price);
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         price: Math.round(priceNum * 100),
         durationMinutes: parseInt(durationMinutes) || 30,
         category,
-        imageUrl: imageUrl || "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&auto=format&fit=crop&q=80",
+        imageUrl: imageUrl || "",
         isActive: isActive !== undefined ? Boolean(isActive) : true,
       })
       .returning();

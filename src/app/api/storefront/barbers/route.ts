@@ -20,8 +20,8 @@ export async function POST(req: Request) {
   try {
     const { name, title, bio, avatarUrl, rating, yearsExperience, specialties, phone, isAvailable } = await req.json();
 
-    if (!name || !title || !bio) {
-      return NextResponse.json({ error: "Name, title, and bio are required" }, { status: 400 });
+    if (!name || !title) {
+      return NextResponse.json({ error: "Name and title are required" }, { status: 400 });
     }
 
     const [newBarber] = await db
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
         name,
         title,
         bio,
-        avatarUrl: avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+        avatarUrl: avatarUrl || "",
         rating: rating !== undefined && rating !== "" ? String(rating) : "5.00",
         yearsExperience: parseInt(yearsExperience) || 5,
         specialties: specialties || "",

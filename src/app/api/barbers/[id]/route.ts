@@ -9,7 +9,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const barberId = parseInt(id);
     const body = await req.json();
 
-    const { name, phone, commissionRate, specialties, status } = body;
+    const { name, phone, commissionRate, specialties, status, photoUrl } = body;
 
     const existing = await db.select().from(barbers).where(eq(barbers.id, barberId));
     if (existing.length === 0) {
@@ -22,6 +22,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (commissionRate !== undefined) updateData.commissionRate = String(commissionRate);
     if (specialties !== undefined) updateData.specialties = specialties;
     if (status !== undefined) updateData.status = status;
+    if (photoUrl !== undefined) updateData.photoUrl = photoUrl || null;
 
     const [updatedBarber] = await db
       .update(barbers)

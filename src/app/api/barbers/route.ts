@@ -42,7 +42,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { name, phone, commissionRate = "40.00", specialties = "", status = "active" } = await req.json();
+    const { name, phone, commissionRate = "40.00", specialties = "", status = "active", photoUrl } = await req.json();
 
     if (!name || !phone) {
       return NextResponse.json({ error: "Name and phone are required" }, { status: 400 });
@@ -56,6 +56,7 @@ export async function POST(req: Request) {
         commissionRate: String(commissionRate),
         specialties,
         status,
+        photoUrl: photoUrl || null,
       })
       .returning();
 

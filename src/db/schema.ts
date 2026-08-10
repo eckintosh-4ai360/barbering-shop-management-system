@@ -19,6 +19,7 @@ export const barbers = pgTable("barbers", {
   status: text("status").notNull().default("active"), // 'active' | 'inactive'
   commissionRate: numeric("commission_rate", { precision: 5, scale: 2 }).notNull().default("40.00"), // % share for barber
   specialties: text("specialties"),
+  photoUrl: text("photo_url"), // base64 or URL of barber profile photo
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

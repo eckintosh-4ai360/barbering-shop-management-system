@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "@/context/AppContext";
 import {
   Users,
@@ -14,6 +14,9 @@ import {
   Phone,
   Loader2,
   X,
+  Camera,
+  Upload,
+  Trash2,
 } from "lucide-react";
 
 export default function BarbersPage() {
@@ -31,6 +34,12 @@ export default function BarbersPage() {
   const [specialties, setSpecialties] = useState("");
   const [status, setStatus] = useState("active");
   const [submitting, setSubmitting] = useState(false);
+
+  // Photo State
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoBase64, setPhotoBase64] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch Barbers with stats
   useEffect(() => {
@@ -58,6 +67,9 @@ export default function BarbersPage() {
     setCommissionRate(settings.defaultCommissionRate || "40.00");
     setSpecialties("");
     setStatus("active");
+    setPhotoPreview(null);
+    setPhotoBase64(null);
+    setPhotoError(null);
     setShowModal(true);
   };
 
@@ -68,7 +80,44 @@ export default function BarbersPage() {
     setCommissionRate(barber.commissionRate || "40.00");
     setSpecialties(barber.specialties || "");
     setStatus(barber.status || "active");
+    setPhotoPreview(barber.photoUrl || null);
+    setPhotoBase64(barber.photoUrl || null);
+    setPhotoError(null);
     setShowModal(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setPhotoError(null);
+
+    if (!file) return;
+
+    // Validate type
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Please select a valid image file (JPG, PNG, WEBP, etc.)");
+      return;
+    }
+
+    // Validate size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setPhotoError("Image must be smaller than 2MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      setPhotoPreview(result);
+      setPhotoBase64(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoPreview(null);
+    setPhotoBase64(null);
+    setPhotoError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -83,7 +132,14 @@ export default function BarbersPage() {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, commissionRate, specialties, status }),
+        body: JSON.stringify({
+          name,
+          phone,
+          commissionRate,
+          specialties,
+          status,
+          photoUrl: photoBase64 || null,
+        }),
       });
 
       if (res.ok) {
@@ -102,7 +158,7 @@ export default function BarbersPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div>
-          <h1 className="text-xl font-extrabold text-slate-800">Barbers Roster & Performance</h1>
+          <h1 className="text-xl font-extrabold text-slate-800">Barbers Roster &amp; Performance</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Track individual barber revenue, customer counts, and commission payouts
           </p>
@@ -129,7 +185,7 @@ export default function BarbersPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {barbers.map((barber) => {
             const isActive = barber.status === "active";
-            const netSalonShare = barber.totalRevenue - barber.totalCommission;
+            const initials = barber.name.split(" ").map((n: string) => n[0]).join("").substring(0, 2);
 
             return (
               <div
@@ -139,9 +195,20 @@ export default function BarbersPage() {
                 {/* Header */}
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white font-black text-base flex items-center justify-center shadow-md">
-                      {barber.name.split(" ").map((n: string) => n[0]).join("").substring(0, 2)}
-                    </div>
+                    {/* Photo or Initials Avatar */}
+                    {barber.photoUrl ? (
+                      <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-md border border-slate-200 shrink-0">
+                        <img
+                          src={barber.photoUrl}
+                          alt={barber.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white font-black text-base flex items-center justify-center shadow-md shrink-0">
+                        {initials}
+                      </div>
+                    )}
                     <div>
                       <h3 className="font-extrabold text-slate-900 text-base">{barber.name}</h3>
                       <p className="text-xs text-slate-400 font-medium flex items-center gap-1 mt-0.5">
@@ -222,8 +289,8 @@ export default function BarbersPage() {
       {/* Add / Edit Barber Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-150">
-            <div className="bg-slate-900 text-white p-5 px-6 flex items-center justify-between">
+          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-150 max-h-[90vh] overflow-y-auto">
+            <div className="bg-slate-900 text-white p-5 px-6 flex items-center justify-between sticky top-0 z-10">
               <h3 className="font-bold text-base">
                 {editingBarber ? "Edit Barber Profile" : "Add New Barber"}
               </h3>
@@ -236,6 +303,73 @@ export default function BarbersPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* Photo Upload Section */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
+                  Profile Photo
+                </label>
+
+                <div className="flex items-center gap-4">
+                  {/* Photo Preview / Placeholder */}
+                  <div className="relative shrink-0">
+                    {photoPreview ? (
+                      <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-orange-300 shadow-md">
+                        <img
+                          src={photoPreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center">
+                        <Camera className="w-7 h-7 text-slate-400" />
+                      </div>
+                    )}
+                    {/* Remove photo button */}
+                    {photoPreview && (
+                      <button
+                        type="button"
+                        onClick={handleRemovePhoto}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors"
+                        title="Remove photo"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* File chooser */}
+                  <div className="flex-1">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      id="barber-photo-input"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                    <label
+                      htmlFor="barber-photo-input"
+                      className="flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-slate-600 hover:text-orange-600 font-semibold text-xs px-4 py-2.5 rounded-xl transition-all w-full justify-center"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {photoPreview ? "Change Photo" : "Choose from File"}
+                    </label>
+                    <p className="text-[10px] text-slate-400 mt-1.5 text-center">
+                      JPG, PNG, WEBP · Max 2MB
+                    </p>
+                  </div>
+                </div>
+
+                {/* Error message */}
+                {photoError && (
+                  <p className="text-xs text-red-500 font-medium mt-2 flex items-center gap-1">
+                    <XCircle className="w-3.5 h-3.5" />
+                    {photoError}
+                  </p>
+                )}
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                   Full Name *
